@@ -47,13 +47,24 @@ jobs:
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
 
-      - name: Surgical iOS Bypass & Directory Fix
+      - name: Generate Native Blueprints
+        run: |
+          php artisan native:install --force --no-interaction || true
+
+      - name: Surgical iOS Bypass
         run: |
           mkdir -p nativephp
-          php -r "\$path = 'vendor/nativephp/mobile/src/Commands/BuildIosAppCommand.php'; if(file_exists(\$path)) { file_put_contents(\$path, str_replace('// Clear the last log', 'return 0; // bypassed', file_get_contents(\$path))); }"
+          php -r "\$path = 'vendor/nativephp/mobile/src/Commands/BuildIosAppCommand.php'; if(file_exists(\$path)) { file_put_contents(\$path, str_replace('// Clear the last log', 'return 0;', file_get_contents(\$path))); }"
 
-      - name: Build Mobile Apps
+      - name: Scaffold Mobile Assets
         run: php artisan native:build
+
+      - name: Force Android Compilation (Manual Gradle Override)
+        run: |
+          echo "Bypassing NativePHP and triggering raw Android compiler..."
+          cd nativephp/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK File
         uses: actions/upload-artifact@v4

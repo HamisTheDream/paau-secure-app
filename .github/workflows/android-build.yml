@@ -70,6 +70,7 @@ jobs:
               \$c = str_replace('REPLACEMECODE', '1', \$c);
               \$c = str_replace('REPLACE_MINIFY_ENABLED', 'false', \$c);
               \$c = str_replace('REPLACE_SHRINK_RESOURCES', 'false', \$c);
+              \$c = str_replace('REPLACE_DEBUG_SYMBOLS', 'none', \$c);
               file_put_contents(\$f, \$c);
           }
           "

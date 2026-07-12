@@ -48,8 +48,7 @@ jobs:
           php artisan migrate:fresh --seed --force
 
       - name: Generate Native Blueprints
-        run: |
-          php artisan native:install --force --no-interaction || true
+        run: php artisan native:install --force --no-interaction || true
 
       - name: Surgical iOS Bypass
         run: |
@@ -59,9 +58,24 @@ jobs:
       - name: Scaffold Mobile Assets
         run: php artisan native:build
 
+      - name: Inject Android Build Variables
+        run: |
+          php -r "
+          \$f = 'nativephp/android/app/build.gradle.kts';
+          if(file_exists(\$f)) {
+              \$c = file_get_contents(\$f);
+              \$c = str_replace('REPLACE_COMPILE_SDK', '34', \$c);
+              \$c = str_replace('REPLACE_MIN_SDK', '24', \$c);
+              \$c = str_replace('REPLACE_TARGET_SDK', '34', \$c);
+              \$c = str_replace('REPLACEMECODE', '1', \$c);
+              \$c = str_replace('REPLACE_MINIFY_ENABLED', 'false', \$c);
+              \$c = str_replace('REPLACE_SHRINK_RESOURCES', 'false', \$c);
+              file_put_contents(\$f, \$c);
+          }
+          "
+
       - name: Force Android Compilation (Manual Gradle Override)
         run: |
-          echo "Bypassing NativePHP and triggering raw Android compiler..."
           cd nativephp/android
           chmod +x gradlew
           ./gradlew assembleDebug

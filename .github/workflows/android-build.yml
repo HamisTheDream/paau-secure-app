@@ -61,9 +61,9 @@ jobs:
       - name: Inject Android Build Variables
         run: |
           php -r "
-          \$f = 'nativephp/android/app/build.gradle.kts';
-          if(file_exists(\$f)) {
-              \$c = file_get_contents(\$f);
+          \$gradle = 'nativephp/android/app/build.gradle.kts';
+          if(file_exists(\$gradle)) {
+              \$c = file_get_contents(\$gradle);
               \$c = str_replace('REPLACE_COMPILE_SDK', '35', \$c);
               \$c = str_replace('REPLACE_MIN_SDK', '24', \$c);
               \$c = str_replace('REPLACE_TARGET_SDK', '35', \$c);
@@ -71,7 +71,15 @@ jobs:
               \$c = str_replace('REPLACE_MINIFY_ENABLED', 'false', \$c);
               \$c = str_replace('REPLACE_SHRINK_RESOURCES', 'false', \$c);
               \$c = str_replace('REPLACE_DEBUG_SYMBOLS', 'none', \$c);
-              file_put_contents(\$f, \$c);
+              \$c = str_replace('REPLACE_APP_ID', 'com.paau.secureapp', \$c);
+              file_put_contents(\$gradle, \$c);
+          }
+          
+          \$manifest = 'nativephp/android/app/src/main/AndroidManifest.xml';
+          if(file_exists(\$manifest)) {
+              \$c = file_get_contents(\$manifest);
+              \$c = str_replace('REPLACE_APP_ID', 'com.paau.secureapp', \$c);
+              file_put_contents(\$manifest, \$c);
           }
           "
 

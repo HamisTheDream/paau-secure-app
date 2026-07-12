@@ -48,7 +48,7 @@ jobs:
           php artisan migrate:fresh --seed --force
 
       - name: Build APK with NativePHP
-        run: php artisan native:build android
+        run: php artisan native:build
 
       - name: Upload APK File
         uses: actions/upload-artifact@v4

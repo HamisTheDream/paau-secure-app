@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3' # Using a stable modern PHP version
+          php-version: '8.5' # Updated to match your local Herd environment
           extensions: sqlite3, pdo_sqlite, mbstring, dom, xml, zip, curl
 
       - name: Setup Node.js

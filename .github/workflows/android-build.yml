@@ -3,12 +3,12 @@ name: Build Android APK
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Allows you to trigger the build manually from the GitHub website
+  workflow_dispatch:
 
 jobs:
   build:
     name: Compile Android App
-    runs-on: macos-latest # Changed from ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5' # Updated to match your local Herd environment
+          php-version: '8.5'
           extensions: sqlite3, pdo_sqlite, mbstring, dom, xml, zip, curl
 
       - name: Setup Node.js
@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Setup Java (Required for Android SDK)
+      - name: Setup Java (Required for Android)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -47,15 +47,14 @@ jobs:
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
 
-      - name: Build APK with NativePHP
+      - name: Build Android APK
         run: |
-          mkdir -p nativephp/ios/NativePHP
-          mkdir -p nativephp/android/app/src/main/assets
+          mkdir -p nativephp
           php artisan native:build
 
       - name: Upload APK File
         uses: actions/upload-artifact@v4
         with:
           name: PAAU_SecureApp_APK
-          path: dist/**/*.apk # Captures the generated APK file
+          path: "**/*.apk"
           retention-days: 7

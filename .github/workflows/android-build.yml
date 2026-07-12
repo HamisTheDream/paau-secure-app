@@ -31,8 +31,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install PHP Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Install PHP Dependencies & Fix Runtime
+        run: |
+          composer require nativephp/mobile
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: Install NPM Dependencies & Build Tailwind
         run: |
@@ -58,7 +60,7 @@ jobs:
       - name: Scaffold Mobile Assets
         run: php artisan native:build
 
-      - name: Inject Android Build Variables
+      - name: Inject Android Variables & App Name
         run: |
           php -r "
           \$gradle = 'nativephp/android/app/build.gradle.kts';
@@ -71,27 +73,37 @@ jobs:
               \$c = str_replace('REPLACE_MINIFY_ENABLED', 'false', \$c);
               \$c = str_replace('REPLACE_SHRINK_RESOURCES', 'false', \$c);
               \$c = str_replace('REPLACE_DEBUG_SYMBOLS', 'none', \$c);
-              \$c = str_replace('REPLACE_APP_ID', 'com.paau.secureapp', \$c);
+              \$c = str_replace('REPLACE_APP_ID', 'ng.edu.paau.secureapp', \$c);
               file_put_contents(\$gradle, \$c);
           }
           
           \$manifest = 'nativephp/android/app/src/main/AndroidManifest.xml';
           if(file_exists(\$manifest)) {
               \$c = file_get_contents(\$manifest);
-              \$c = str_replace('REPLACE_APP_ID', 'com.paau.secureapp', \$c);
+              \$c = str_replace('REPLACE_APP_ID', 'ng.edu.paau.secureapp', \$c);
               file_put_contents(\$manifest, \$c);
+          }
+          
+          \$strings = 'nativephp/android/app/src/main/res/values/strings.xml';
+          if(file_exists(\$strings)) {
+              \$c = file_get_contents(\$strings);
+              \$c = str_replace('>NativePHP<', '>PAAU SecureApp<', \$c);
+              file_put_contents(\$strings, \$c);
           }
           "
 
-      - name: Force Android Compilation (Manual Gradle Override)
+      - name: Force Android Compilation
         run: |
           cd nativephp/android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK File
+      - name: Format and Rename APK File
+        run: mv nativephp/android/app/build/outputs/apk/debug/app-debug.apk PAAU_SecureApp.apk
+
+      - name: Upload Clean APK File
         uses: actions/upload-artifact@v4
         with:
           name: PAAU_SecureApp_APK
-          path: "**/*.apk"
+          path: PAAU_SecureApp.apk
           retention-days: 7

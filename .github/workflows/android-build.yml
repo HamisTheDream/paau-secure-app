@@ -1,0 +1,57 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allows you to trigger the build manually from the GitHub website
+
+jobs:
+  build:
+    name: Compile Android App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3' # Using a stable modern PHP version
+          extensions: sqlite3, pdo_sqlite, mbstring, dom, xml, zip, curl
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java (Required for Android SDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install PHP Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install NPM Dependencies & Build Tailwind
+        run: |
+          npm install
+          npm run build
+
+      - name: Prepare Laravel Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          touch database/database.sqlite
+          php artisan migrate:fresh --seed --force
+
+      - name: Build APK with NativePHP
+        run: php artisan native:build android
+
+      - name: Upload APK File
+        uses: actions/upload-artifact@v4
+        with:
+          name: PAAU_SecureApp_APK
+          path: dist/**/*.apk # Captures the generated APK file
+          retention-days: 7

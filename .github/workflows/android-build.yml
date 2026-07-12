@@ -49,7 +49,8 @@ jobs:
 
       - name: Build APK with NativePHP
         run: |
-          mkdir -p nativephp
+          mkdir -p nativephp/ios/NativePHP
+          mkdir -p nativephp/android/app/src/main/assets
           php artisan native:build
 
       - name: Upload APK File

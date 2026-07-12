@@ -47,12 +47,21 @@ jobs:
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
 
-      - name: Generate Native Blueprints
+      - name: Force Skip iOS Build
         run: |
-          php artisan native:install --force --no-interaction || true
-          php artisan vendor:publish --force || true
+          cat << 'EOF' > skip_ios.php
+          <?php
+          $path = 'vendor/nativephp/mobile/src/Commands/BuildIosAppCommand.php';
+          if (file_exists($path)) {
+              $content = file_get_contents($path);
+              $content = preg_replace('/(public\s+function\s+handle\s*\([^\)]*\)\s*(?::\s*[a-zA-Z0-9_\\\]+\s*)?\{)/', '$1 return 0;', $content);
+              file_put_contents($path, $content);
+              echo "iOS Build successfully bypassed!\n";
+          }
+          EOF
+          php skip_ios.php
 
-      - name: Build Mobile Apps
+      - name: Build Android APK
         run: php artisan native:build
 
       - name: Upload APK File

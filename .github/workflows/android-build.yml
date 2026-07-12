@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Compile Android App
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Code
@@ -47,12 +47,13 @@ jobs:
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
 
-      - name: Build Android APK
+      - name: Generate Native Blueprints
         run: |
-          sudo apt-get update && sudo apt-get install -y zip unzip
-          mkdir -p nativephp/ios/NativePHP
-          mkdir -p nativephp/android/app/src/main/assets
-          php artisan native:build
+          php artisan native:install --force --no-interaction || true
+          php artisan vendor:publish --force || true
+
+      - name: Build Mobile Apps
+        run: php artisan native:build
 
       - name: Upload APK File
         uses: actions/upload-artifact@v4
